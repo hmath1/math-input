@@ -227,6 +227,18 @@
     transition:background .15s;
   }
   .copy-btn.copied{background:var(--ink);color:var(--kakao);}
+  .input-dock{
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    max-width:640px;
+    margin:0 auto;
+    border-radius:18px 18px 0 0;
+    box-shadow:0 -4px 16px rgba(31,42,68,0.12);
+    z-index:100;
+  }
+  #dockSpacer{height:0;}
 </style>
 </head>
 <body>
@@ -237,7 +249,7 @@
 
   <div class="card" id="grids"></div>
 
-  <div class="card">
+  <div class="card input-dock">
     <button class="more-toggle" id="moreToggle"><span>더 보기 (줄긋기 · 순환마디 점)</span><span class="chevron">▾</span></button>
     <div class="toolbar collapsed" id="moreToolbar">
       <button class="tool-btn" id="barBtn">선택 영역 줄긋기 (x̄)</button>
@@ -247,9 +259,10 @@
 (예: x2를 쓴 뒤 2를 선택하고 '위첨자' 버튼을 누르면 x² 로 바뀌어요.)"></textarea>
     <div class="action-row">
       <button class="tool-btn clear" id="clearBtn">전체 지우기</button>
-      <button class="copy-btn" id="copyBtn">📋 복사하기</button>
+      <button class="copy-btn" id="copyBtn">복사하기</button>
     </div>
   </div>
+  <div id="dockSpacer"></div>
 
 </div>
 
@@ -373,12 +386,25 @@ document.getElementById('dotBtn').addEventListener('click', () => addCombiningMa
 
 const moreToggle = document.getElementById('moreToggle');
 const moreToolbar = document.getElementById('moreToolbar');
+const dockSpacer = document.getElementById('dockSpacer');
+const inputDock = document.querySelector('.input-dock');
+
+function updateDockSpacer(){
+  dockSpacer.style.height = inputDock.offsetHeight + 'px';
+}
+window.addEventListener('load', updateDockSpacer);
+window.addEventListener('resize', updateDockSpacer);
+if(document.fonts && document.fonts.ready){
+  document.fonts.ready.then(updateDockSpacer);
+}
+
 moreToggle.addEventListener('click', () => {
   const isCollapsed = moreToolbar.classList.toggle('collapsed');
   moreToggle.classList.toggle('open', !isCollapsed);
   moreToggle.querySelector('span').textContent = isCollapsed
     ? '더 보기 (줄긋기 · 순환마디 점)'
     : '접기';
+  updateDockSpacer();
 });
 document.getElementById('clearBtn').addEventListener('click', () => { input.value=''; input.focus(); });
 
@@ -392,10 +418,10 @@ copyBtn.addEventListener('click', async () => {
     input.select();
     document.execCommand('copy');
   }
-  copyBtn.textContent = '✅ 복사 완료!';
+  copyBtn.textContent = '복사 완료!';
   copyBtn.classList.add('copied');
   setTimeout(()=>{
-    copyBtn.textContent = '📋 복사하기';
+    copyBtn.textContent = '복사하기';
     copyBtn.classList.remove('copied');
   },1800);
 });
