@@ -347,7 +347,6 @@ function insertAtCursor(text){
   const end = input.selectionEnd ?? input.value.length;
   input.value = input.value.slice(0,start) + text + input.value.slice(end);
   const newPos = start + text.length;
-  input.focus();
   input.setSelectionRange(newPos, newPos);
 }
 
@@ -355,14 +354,12 @@ function convertSelection(map){
   const start = input.selectionStart;
   const end = input.selectionEnd;
   if(start === end){
-    input.focus();
     return;
   }
   const selected = input.value.slice(start,end);
   const converted = [...selected].map(ch => map[ch.toLowerCase()] ?? map[ch] ?? ch).join('');
   input.value = input.value.slice(0,start) + converted + input.value.slice(end);
   const newPos = start + converted.length;
-  input.focus();
   input.setSelectionRange(start, newPos);
 }
 
@@ -370,14 +367,12 @@ function addCombiningMark(mark){
   const start = input.selectionStart;
   const end = input.selectionEnd;
   if(start === end){
-    input.focus();
     return;
   }
   const selected = input.value.slice(start,end);
   const converted = [...selected].map(ch => /\s/.test(ch) ? ch : ch + mark).join('');
   input.value = input.value.slice(0,start) + converted + input.value.slice(end);
   const newPos = start + converted.length;
-  input.focus();
   input.setSelectionRange(start, newPos);
 }
 
@@ -406,7 +401,7 @@ moreToggle.addEventListener('click', () => {
     : '접기';
   updateDockSpacer();
 });
-document.getElementById('clearBtn').addEventListener('click', () => { input.value=''; input.focus(); });
+document.getElementById('clearBtn').addEventListener('click', () => { input.value=''; });
 
 const copyBtn = document.getElementById('copyBtn');
 copyBtn.addEventListener('click', async () => {
