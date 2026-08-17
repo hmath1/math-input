@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>수식 카톡 입력기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Nanum+Gothic+Coding&display=swap" rel="stylesheet">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css" />
+<style>
+  :root{
+    --paper:#EEF3F5;
+    --card:#FFFFFF;
+    --ink:#1F2A44;
+    --ink-soft:#5A6B85;
+    --kakao:#FEE500;
+    --coral:#FF6B57;
+    --line:#DCE4EA;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-position: -1px -1px;
+    color:var(--ink);
+    font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+    min-height:100vh;
+    padding:20px 14px 60px;
+  }
+  .wrap{max-width:640px;margin:0 auto;}
+  header{margin-bottom:18px;}
+  h1{
+    font-family:'Gaegu',sans-serif;
+    font-weight:700;
+    font-size:32px;
+    margin:0;
+    line-height:1.2;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:16px;
+    margin-bottom:14px;
+    box-shadow: 0 2px 0 var(--line);
+  }
+  .section{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding:12px 0;
+    border-bottom:1px dashed var(--line);
+  }
+  .section:first-child{padding-top:0;}
+  .section:last-child{border-bottom:none;padding-bottom:0;}
+  .section-label{
+    display:flex;
+    align-items:flex-start;
+    gap:7px;
+    flex:0 0 70px;
+    font-size:12.5px;
+    font-weight:700;
+    color:var(--ink);
+    line-height:1.3;
+    padding-top:3px;
+  }
+  .section-label::before{
+    content:'';
+    width:4px;height:14px;
+    background:var(--coral);
+    border-radius:2px;
+    display:inline-block;
+    flex-shrink:0;
+    margin-top:1px;
+  }
+  .section.section-stack{
+    display:block;
+  }
+  .section-stack .section-label{
+    margin-bottom:9px;
+    padding-top:0;
+  }
+  .section-label.toggle{
+    cursor:pointer;
+    justify-content:flex-start;
+    align-items:center;
+    gap:8px;
+    user-select:none;
+    width:100%;
+    flex-wrap:wrap;
+  }
+  .section-label.toggle::before{display:none;}
+  .section-label.toggle .label-left{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    flex:1;
+  }
+  .label-left::before{
+    content:'';
+    width:4px;height:14px;
+    background:var(--coral);
+    border-radius:2px;
+    display:inline-block;
+  }
+  .inline-convert-btn{
+    flex-shrink:0;
+    border:1px solid var(--line);
+    background:var(--paper);
+    color:var(--ink);
+    font-size:11px;
+    font-weight:600;
+    padding:5px 9px;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  .inline-convert-btn:active{background:var(--coral);color:#fff;border-color:var(--coral);}
+  .count-badge{
+    font-size:11px;
+    font-weight:500;
+    color:var(--ink-soft);
+    background:var(--paper);
+    border:1px solid var(--line);
+    padding:1px 7px;
+    border-radius:10px;
+  }
+  .chevron{
+    color:var(--ink-soft);
+    font-size:12px;
+    transition:transform .15s;
+    flex-shrink:0;
+  }
+  .section-label.toggle.collapsed .chevron{transform:rotate(-90deg);}
+  .sym-grid.collapsed{display:none;}
+  .sym-grid{
+    flex:1;
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(42px,1fr));
+    gap:7px;
+  }
+  .sym-btn{
+    aspect-ratio:1;
+    border:1px solid var(--line);
+    background:var(--paper);
+    border-radius:9px;
+    font-size:17px;
+    color:var(--ink);
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .1s, background .1s;
+  }
+  .sym-btn.small{font-size:15px;}
+  .sym-btn:active{transform:scale(0.88);background:var(--coral);color:#fff;}
+  .toolbar{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .toolbar.collapsed{display:none;}
+  .more-toggle{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    width:100%;
+    background:none;
+    border:none;
+    color:var(--ink-soft);
+    font-size:12px;
+    font-weight:600;
+    padding:2px 0 10px;
+    cursor:pointer;
+  }
+  .more-toggle .chevron{
+    font-size:11px;
+    transition:transform .15s;
+  }
+  .more-toggle.open .chevron{transform:rotate(180deg);}
+  .tool-btn{
+    border:1px solid var(--ink);
+    background:var(--card);
+    color:var(--ink);
+    font-weight:700;
+    font-size:13px;
+    padding:9px 10px;
+    border-radius:10px;
+    cursor:pointer;
+  }
+  .tool-btn:active{background:var(--ink);color:var(--kakao);}
+  .tool-btn.clear{border-color:var(--line);color:var(--ink-soft);font-weight:500;}
+  textarea{
+    width:100%;
+    min-height:90px;
+    resize:vertical;
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px;
+    font-family:'Nanum Gothic Coding',monospace;
+    font-size:16px;
+    color:var(--ink);
+    background:#FBFCFD;
+    line-height:1.6;
+  }
+  textarea:focus{outline:2px solid var(--coral);outline-offset:1px;}
+  .action-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-top:10px;
+  }
+  .action-row .tool-btn.clear{margin:0;}
+  .copy-btn{
+    width:100%;
+    background:var(--kakao);
+    border:none;
+    color:var(--ink);
+    font-weight:700;
+    font-size:15px;
+    padding:9px 10px;
+    border-radius:10px;
+    cursor:pointer;
+    transition:background .15s;
+  }
+  .copy-btn.copied{background:var(--ink);color:var(--kakao);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>수식 카톡 입력기</h1>
+  </header>
+
+  <div class="card" id="grids"></div>
+
+  <div class="card">
+    <button class="more-toggle" id="moreToggle"><span>더 보기 (줄긋기 · 순환마디 점)</span><span class="chevron">▾</span></button>
+    <div class="toolbar collapsed" id="moreToolbar">
+      <button class="tool-btn" id="barBtn">선택 영역 줄긋기 (x̄)</button>
+      <button class="tool-btn" id="dotBtn">선택 영역 순환마디 점 (1˙2˙)</button>
+    </div>
+    <textarea id="eqInput" placeholder="여기에 입력하거나 위 버튼을 눌러 기호를 넣으세요. 예: x^2 처럼 쓴 뒤 2를 드래그로 선택하고 '위첨자' 버튼을 누르면 x² 로 바뀌어요."></textarea>
+    <div class="action-row">
+      <button class="tool-btn clear" id="clearBtn">전체 지우기</button>
+      <button class="copy-btn" id="copyBtn">📋 복사하기</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const supMap = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','+':'⁺','-':'⁻','=':'⁼','(':'⁽',')':'⁾',
+  'a':'ᵃ','b':'ᵇ','c':'ᶜ','d':'ᵈ','e':'ᵉ','f':'ᶠ','g':'ᵍ','h':'ʰ','i':'ⁱ','j':'ʲ','k':'ᵏ','l':'ˡ','m':'ᵐ','n':'ⁿ','o':'ᵒ','p':'ᵖ','r':'ʳ','s':'ˢ','t':'ᵗ','u':'ᵘ','v':'ᵛ','w':'ʷ','x':'ˣ','y':'ʸ','z':'ᶻ'};
+const subMap = {'0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉','+':'₊','-':'₋','=':'₌','(':'₍',')':'₎',
+  'a':'ₐ','e':'ₑ','h':'ₕ','i':'ᵢ','j':'ⱼ','k':'ₖ','l':'ₗ','m':'ₘ','n':'ₙ','o':'ₒ','p':'ₚ','r':'ᵣ','s':'ₛ','t':'ₜ','u':'ᵤ','v':'ᵥ','x':'ₓ'};
+
+const categories = [
+  { name:'그리스문자', symbols:['α','β','γ','δ','ε','θ','λ','μ','π','ρ','σ','φ','χ','ω','Σ','Δ','Ω','Φ'] },
+  { name:'연산·비교', symbols:['±','×','÷','≠','≈','≤','≥','√','∛','∜','∞','·'] },
+  { name:'집합·논리', symbols:['∈','∉','⊂','⊆','⊇','∪','∩','∀','∃','∅','∁','¬'] },
+  { name:'화살표', symbols:['→','←','↔','⇒','⇔','↑','↓'] },
+  { name:'미적분', symbols:['∫','∬','∂','∇','lim','Σ','Δ'] },
+  { name:'도형·각도', symbols:['∠','△','□','⊥','∥','°','≅','∽'] },
+  { name:'기타', symbols:['∴','∵','≡','≒','′','″'] },
+  { name:'위첨자 (지수)', symbols: Object.values(supMap), small:true, collapsible:true, convertLabel:'선택 영역 위첨자로', convertMap:supMap },
+  { name:'아래첨자', symbols: Object.values(subMap), small:true, collapsible:true, convertLabel:'선택 영역 아래첨자로', convertMap:subMap },
+];
+
+const gridsEl = document.getElementById('grids');
+const input = document.getElementById('eqInput');
+
+categories.forEach(cat => {
+  const section = document.createElement('div');
+  section.className = cat.collapsible ? 'section section-stack' : 'section';
+
+  const grid = document.createElement('div');
+  grid.className = 'sym-grid';
+  cat.symbols.forEach(sym => {
+    const btn = document.createElement('button');
+    btn.className = 'sym-btn' + (cat.small ? ' small' : '');
+    btn.textContent = sym;
+    btn.addEventListener('click', () => insertAtCursor(sym));
+    grid.appendChild(btn);
+  });
+
+  const label = document.createElement('div');
+
+  if(cat.collapsible){
+    grid.classList.add('collapsed');
+    label.className = 'section-label toggle collapsed';
+
+    const labelLeft = document.createElement('span');
+    labelLeft.className = 'label-left';
+    labelLeft.innerHTML = `${cat.name} <span class="count-badge">${cat.symbols.length}개</span>`;
+    label.appendChild(labelLeft);
+
+    if(cat.convertMap){
+      const convertBtn = document.createElement('button');
+      convertBtn.className = 'inline-convert-btn';
+      convertBtn.textContent = cat.convertLabel;
+      convertBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        convertSelection(cat.convertMap);
+      });
+      label.appendChild(convertBtn);
+    }
+
+    const chevron = document.createElement('span');
+    chevron.className = 'chevron';
+    chevron.textContent = '▾';
+    label.appendChild(chevron);
+
+    label.addEventListener('click', () => {
+      const isCollapsed = grid.classList.toggle('collapsed');
+      label.classList.toggle('collapsed', isCollapsed);
+    });
+  }else{
+    label.className = 'section-label';
+    label.textContent = cat.name;
+  }
+
+  section.appendChild(label);
+  section.appendChild(grid);
+  gridsEl.appendChild(section);
+});
+
+function insertAtCursor(text){
+  const start = input.selectionStart ?? input.value.length;
+  const end = input.selectionEnd ?? input.value.length;
+  input.value = input.value.slice(0,start) + text + input.value.slice(end);
+  const newPos = start + text.length;
+  input.focus();
+  input.setSelectionRange(newPos, newPos);
+}
+
+function convertSelection(map){
+  const start = input.selectionStart;
+  const end = input.selectionEnd;
+  if(start === end){
+    input.focus();
+    return;
+  }
+  const selected = input.value.slice(start,end);
+  const converted = [...selected].map(ch => map[ch.toLowerCase()] ?? map[ch] ?? ch).join('');
+  input.value = input.value.slice(0,start) + converted + input.value.slice(end);
+  const newPos = start + converted.length;
+  input.focus();
+  input.setSelectionRange(start, newPos);
+}
+
+function addCombiningMark(mark){
+  const start = input.selectionStart;
+  const end = input.selectionEnd;
+  if(start === end){
+    input.focus();
+    return;
+  }
+  const selected = input.value.slice(start,end);
+  const converted = [...selected].map(ch => /\s/.test(ch) ? ch : ch + mark).join('');
+  input.value = input.value.slice(0,start) + converted + input.value.slice(end);
+  const newPos = start + converted.length;
+  input.focus();
+  input.setSelectionRange(start, newPos);
+}
+
+document.getElementById('barBtn').addEventListener('click', () => addCombiningMark('\u0305'));
+document.getElementById('dotBtn').addEventListener('click', () => addCombiningMark('\u02D9'));
+
+const moreToggle = document.getElementById('moreToggle');
+const moreToolbar = document.getElementById('moreToolbar');
+moreToggle.addEventListener('click', () => {
+  const isCollapsed = moreToolbar.classList.toggle('collapsed');
+  moreToggle.classList.toggle('open', !isCollapsed);
+  moreToggle.querySelector('span').textContent = isCollapsed
+    ? '더 보기 (줄긋기 · 순환마디 점)'
+    : '접기';
+});
+document.getElementById('clearBtn').addEventListener('click', () => { input.value=''; input.focus(); });
+
+const copyBtn = document.getElementById('copyBtn');
+copyBtn.addEventListener('click', async () => {
+  const text = input.value;
+  if(!text){ input.focus(); return; }
+  try{
+    await navigator.clipboard.writeText(text);
+  }catch(e){
+    input.select();
+    document.execCommand('copy');
+  }
+  copyBtn.textContent = '✅ 복사 완료!';
+  copyBtn.classList.add('copied');
+  setTimeout(()=>{
+    copyBtn.textContent = '📋 복사하기';
+    copyBtn.classList.remove('copied');
+  },1800);
+});
+</script>
+</body>
+</html>
