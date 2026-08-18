@@ -616,10 +616,13 @@ function convertSpokenMath(text){
     return word;
   }
 
-  // 1. 괄호: 소괄호/중괄호/대괄호 → 여닫는 쌍으로 삽입
-  t = t.replace(/소괄호/g, '()');
-  t = t.replace(/중괄호/g, '{}');
-  t = t.replace(/대괄호/g, '[]');
+  // 1. 괄호: 열기/닫기를 각각 지정
+  t = t.replace(/소괄호\s*열기/g, '(');
+  t = t.replace(/소괄호\s*닫기/g, ')');
+  t = t.replace(/중괄호\s*열기/g, '{');
+  t = t.replace(/중괄호\s*닫기/g, '}');
+  t = t.replace(/대괄호\s*열기/g, '[');
+  t = t.replace(/대괄호\s*닫기/g, ']');
 
   // 2. 그리스문자 (대문자/소문자 구분이 있는 것 먼저 처리)
   t = t.replace(/소문자\s*시그마/g, 'σ').replace(/시그마/g, 'Σ');
@@ -682,14 +685,14 @@ function convertSpokenMath(text){
     return base + (subMap2[ch] || ch);
   });
 
-  // 5. 거듭제곱 표현
-  t = t.replace(/(\S)\s*세제곱/g, '$1³');
-  t = t.replace(/(\S)\s*네제곱/g, '$1⁴');
-  t = t.replace(/(\S)\s*다섯제곱/g, '$1⁵');
-  t = t.replace(/(\S)\s*여섯제곱/g, '$1⁶');
-  t = t.replace(/(\S)\s*일곱제곱/g, '$1⁷');
-  t = t.replace(/(\S)\s*여덟제곱/g, '$1⁸');
-  t = t.replace(/(\S)\s*아홉제곱/g, '$1⁹');
+  // 5. 거듭제곱 표현 (숫자말과 '제곱' 사이에 공백이 있어도 인식되도록 \s* 허용)
+  t = t.replace(/(\S)\s*세\s*제곱/g, '$1³');
+  t = t.replace(/(\S)\s*네\s*제곱/g, '$1⁴');
+  t = t.replace(/(\S)\s*다섯\s*제곱/g, '$1⁵');
+  t = t.replace(/(\S)\s*여섯\s*제곱/g, '$1⁶');
+  t = t.replace(/(\S)\s*일곱\s*제곱/g, '$1⁷');
+  t = t.replace(/(\S)\s*여덟\s*제곱/g, '$1⁸');
+  t = t.replace(/(\S)\s*아홉\s*제곱/g, '$1⁹');
   t = t.replace(/(\S)\s*제곱/g, '$1²');
 
   // 6. 변수
@@ -704,8 +707,8 @@ function convertSpokenMath(text){
   t = t.replace(/빼기|마이너스/g, '-');
   t = t.replace(/곱하기/g, '×');
   t = t.replace(/나누기/g, '÷');
-  t = t.replace(/세제곱근/g, '∛');
-  t = t.replace(/네제곱근/g, '∜');
+  t = t.replace(/세\s*제곱\s*근/g, '∛');
+  t = t.replace(/네\s*제곱\s*근/g, '∜');
   t = t.replace(/루트/g, '√');
   t = t.replace(/무한대/g, '∞');
   t = t.replace(/퍼센트/g, '%');
@@ -915,7 +918,9 @@ const voiceGuide = [
   ]},
   { category:'기타', items:[
     ['∴ / ∵', '따라서 / 왜냐하면'],
-    ['( ) / { } / [ ]', '소괄호 / 중괄호 / 대괄호'],
+    ['( )', '소괄호 열기 / 소괄호 닫기'],
+    ['{ }', '중괄호 열기 / 중괄호 닫기'],
+    ['[ ]', '대괄호 열기 / 대괄호 닫기'],
   ]},
 ];
 
