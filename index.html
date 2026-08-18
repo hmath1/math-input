@@ -162,12 +162,17 @@
     margin-bottom:10px;
   }
   .toolbar.collapsed{display:none;}
+  .dock-top-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
   .more-toggle{
     display:flex;
     align-items:center;
     justify-content:center;
     gap:5px;
-    width:100%;
+    flex:1;
     background:none;
     border:none;
     color:var(--ink-soft);
@@ -181,6 +186,30 @@
     transition:transform .15s;
   }
   .more-toggle.open .chevron{transform:rotate(180deg);}
+  .mic-btn{
+    flex-shrink:0;
+    width:32px;
+    height:32px;
+    margin-bottom:8px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:var(--paper);
+    font-size:15px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .mic-btn.listening{
+    background:var(--coral);
+    border-color:var(--coral);
+    animation:mic-pulse 1s ease-in-out infinite;
+  }
+  .mic-btn.unsupported{display:none;}
+  @keyframes mic-pulse{
+    0%,100%{box-shadow:0 0 0 0 rgba(255,107,87,0.5);}
+    50%{box-shadow:0 0 0 6px rgba(255,107,87,0);}
+  }
   .tool-btn{
     border:1px solid var(--ink);
     background:var(--card);
@@ -250,7 +279,10 @@
   <div class="card" id="grids"></div>
 
   <div class="card input-dock">
-    <button class="more-toggle" id="moreToggle"><span>더 보기 (줄긋기 · 순환마디 점)</span><span class="chevron">▾</span></button>
+    <div class="dock-top-row">
+      <button class="more-toggle" id="moreToggle"><span>더 보기 (줄긋기 · 순환마디 점)</span><span class="chevron">▾</span></button>
+      <button class="mic-btn unsupported" id="micBtn" title="음성으로 입력">🎤</button>
+    </div>
     <div class="toolbar collapsed" id="moreToolbar">
       <button class="tool-btn" id="barBtn">선택 영역 줄긋기 (x̄)</button>
       <button class="tool-btn" id="dotBtn">선택 영역 순환마디 점 (1˙2˙)</button>
@@ -287,6 +319,55 @@ const categories = [
 const gridsEl = document.getElementById('grids');
 const input = document.getElementById('eqInput');
 
+const RECENT_KEY = 'mathInput_recentSymbols';
+const RECENT_MAX = 14;
+let recentSymbols = [];
+try{
+  recentSymbols = JSON.parse(localStorage.getItem(RECENT_KEY)) || [];
+}catch(e){
+  recentSymbols = [];
+}
+
+const recentSection = document.createElement('div');
+recentSection.className = 'section';
+recentSection.id = 'recentSection';
+recentSection.style.display = 'none';
+const recentLabel = document.createElement('div');
+recentLabel.className = 'section-label';
+recentLabel.textContent = '최근 사용';
+const recentGrid = document.createElement('div');
+recentGrid.className = 'sym-grid';
+recentSection.appendChild(recentLabel);
+recentSection.appendChild(recentGrid);
+gridsEl.appendChild(recentSection);
+
+function renderRecent(){
+  recentGrid.innerHTML = '';
+  if(recentSymbols.length === 0){
+    recentSection.style.display = 'none';
+    return;
+  }
+  recentSection.style.display = '';
+  recentSymbols.forEach(sym => {
+    const btn = document.createElement('button');
+    btn.className = 'sym-btn';
+    btn.textContent = sym;
+    btn.addEventListener('click', () => { insertAtCursor(sym); trackRecent(sym); });
+    recentGrid.appendChild(btn);
+  });
+}
+
+function trackRecent(sym){
+  recentSymbols = recentSymbols.filter(s => s !== sym);
+  recentSymbols.unshift(sym);
+  if(recentSymbols.length > RECENT_MAX) recentSymbols = recentSymbols.slice(0, RECENT_MAX);
+  try{ localStorage.setItem(RECENT_KEY, JSON.stringify(recentSymbols)); }catch(e){}
+  renderRecent();
+  updateDockSpacer();
+}
+
+renderRecent();
+
 categories.forEach(cat => {
   const section = document.createElement('div');
   section.className = cat.collapsible ? 'section section-stack' : 'section';
@@ -297,7 +378,7 @@ categories.forEach(cat => {
     const btn = document.createElement('button');
     btn.className = 'sym-btn' + (cat.small ? ' small' : '');
     btn.textContent = sym;
-    btn.addEventListener('click', () => insertAtCursor(sym));
+    btn.addEventListener('click', () => { insertAtCursor(sym); trackRecent(sym); });
     grid.appendChild(btn);
   });
 
@@ -402,6 +483,49 @@ moreToggle.addEventListener('click', () => {
   updateDockSpacer();
 });
 document.getElementById('clearBtn').addEventListener('click', () => { input.value=''; });
+
+const micBtn = document.getElementById('micBtn');
+const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if(SpeechRecognitionAPI){
+  micBtn.classList.remove('unsupported');
+  const recognition = new SpeechRecognitionAPI();
+  recognition.lang = 'ko-KR';
+  recognition.interimResults = false;
+  recognition.continuous = false;
+  let listening = false;
+
+  micBtn.addEventListener('click', () => {
+    if(listening){
+      recognition.stop();
+      return;
+    }
+    try{
+      recognition.start();
+    }catch(e){}
+  });
+
+  recognition.addEventListener('start', () => {
+    listening = true;
+    micBtn.classList.add('listening');
+  });
+
+  recognition.addEventListener('end', () => {
+    listening = false;
+    micBtn.classList.remove('listening');
+  });
+
+  recognition.addEventListener('error', () => {
+    listening = false;
+    micBtn.classList.remove('listening');
+  });
+
+  recognition.addEventListener('result', (event) => {
+    const transcript = event.results[0][0].transcript;
+    const needsSpace = input.value.length > 0 && !/\s$/.test(input.value);
+    insertAtCursor((needsSpace ? ' ' : '') + transcript);
+  });
+}
 
 const copyBtn = document.getElementById('copyBtn');
 copyBtn.addEventListener('click', async () => {
