@@ -210,6 +210,108 @@
     0%,100%{box-shadow:0 0 0 0 rgba(255,107,87,0.5);}
     50%{box-shadow:0 0 0 6px rgba(255,107,87,0);}
   }
+  .guide-btn{
+    flex-shrink:0;
+    width:32px;
+    height:32px;
+    margin-bottom:8px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:var(--paper);
+    color:var(--ink-soft);
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .guide-btn.unsupported{display:none;}
+  .modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(31,42,68,0.45);
+    z-index:200;
+    align-items:flex-end;
+    justify-content:center;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal-panel{
+    background:var(--card);
+    width:100%;
+    max-width:640px;
+    max-height:80vh;
+    border-radius:18px 18px 0 0;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  .modal-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 16px;
+    border-bottom:1px solid var(--line);
+    flex-shrink:0;
+  }
+  .modal-header h2{
+    margin:0;
+    font-family:'Gaegu',sans-serif;
+    font-size:20px;
+  }
+  .modal-close{
+    border:none;
+    background:var(--paper);
+    color:var(--ink-soft);
+    width:28px;
+    height:28px;
+    border-radius:50%;
+    cursor:pointer;
+    font-size:13px;
+  }
+  .modal-body{
+    padding:8px 16px 20px;
+    overflow-y:auto;
+  }
+  .guide-section-label{
+    font-size:12.5px;
+    font-weight:700;
+    color:var(--ink);
+    margin:14px 0 6px;
+    display:flex;
+    align-items:center;
+    gap:7px;
+  }
+  .guide-section-label::before{
+    content:'';
+    width:4px;height:14px;
+    background:var(--coral);
+    border-radius:2px;
+    display:inline-block;
+  }
+  .guide-row{
+    display:grid;
+    grid-template-columns:88px 1fr;
+    align-items:start;
+    gap:10px;
+    padding:7px 0;
+    border-bottom:1px dashed var(--line);
+  }
+  .guide-symbol{
+    font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;
+    font-size:14px;
+    font-weight:700;
+    color:var(--ink);
+    line-height:1.4;
+    min-width:0;
+    overflow-wrap:break-word;
+  }
+  .guide-trigger{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    line-height:1.5;
+  }
   .tool-btn{
     border:1px solid var(--ink);
     background:var(--card);
@@ -282,6 +384,7 @@
     <div class="dock-top-row">
       <button class="more-toggle" id="moreToggle"><span>더 보기 (줄긋기 · 순환마디 점)</span><span class="chevron">▾</span></button>
       <button class="mic-btn unsupported" id="micBtn" title="음성으로 입력">🎤</button>
+      <button class="guide-btn unsupported" id="guideBtn" title="음성 가이드">❓</button>
     </div>
     <div class="toolbar collapsed" id="moreToolbar">
       <button class="tool-btn" id="barBtn">선택 영역 줄긋기 (x̄)</button>
@@ -298,6 +401,16 @@
 
 </div>
 
+<div class="modal-overlay" id="guideOverlay">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <h2>음성 입력 가이드</h2>
+      <button class="modal-close" id="closeGuide">✕</button>
+    </div>
+    <div class="modal-body" id="guideBody"></div>
+  </div>
+</div>
+
 <script>
 const supMap = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','+':'⁺','-':'⁻','=':'⁼','(':'⁽',')':'⁾',
   'a':'ᵃ','b':'ᵇ','c':'ᶜ','d':'ᵈ','e':'ᵉ','f':'ᶠ','g':'ᵍ','h':'ʰ','i':'ⁱ','j':'ʲ','k':'ᵏ','l':'ˡ','m':'ᵐ','n':'ⁿ','o':'ᵒ','p':'ᵖ','r':'ʳ','s':'ˢ','t':'ᵗ','u':'ᵘ','v':'ᵛ','w':'ʷ','x':'ˣ','y':'ʸ','z':'ᶻ'};
@@ -307,7 +420,7 @@ const subMap = {'0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':
 const categories = [
   { name:'기본·연산·비교', symbols:['+','-','×','÷','=','≠','<','>','≤','≥','≈','±','√','∛','∜','∞','·',':','%','|'] },
   { name:'그리스문자', symbols:['α','β','γ','δ','ε','θ','λ','μ','π','ρ','σ','φ','χ','ω','Σ','Δ','Ω','Φ'] },
-  { name:'집합·논리', symbols:['∈','∉','⊂','⊆','⊇','∪','∩','∀','∃','∅','∁','¬'] },
+  { name:'집합·논리', symbols:['∈','∉','⊂','⊃','∪','∩','∀','∃','∅','∁','¬'] },
   { name:'화살표', symbols:['→','←','↔','⇒','⇔','↑','↓'] },
   { name:'미적분', symbols:['∫','∬','∂','∇','lim','Σ','Δ'] },
   { name:'도형·각도', symbols:['∠','△','□','⊥','∥','°','≡','≅','∽'] },
@@ -320,7 +433,7 @@ const gridsEl = document.getElementById('grids');
 const input = document.getElementById('eqInput');
 
 const RECENT_KEY = 'mathInput_recentSymbols';
-const RECENT_MAX = 14;
+const RECENT_MAX = 10;
 let recentSymbols = [];
 try{
   recentSymbols = JSON.parse(localStorage.getItem(RECENT_KEY)) || [];
@@ -487,8 +600,196 @@ document.getElementById('clearBtn').addEventListener('click', () => { input.valu
 const micBtn = document.getElementById('micBtn');
 const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
 
+function convertSpokenMath(text){
+  let t = text.trim().replace(/[.。]+$/, '');
+
+  const numMap = {'영':'0','공':'0','일':'1','이':'2','삼':'3','사':'4','오':'5','육':'6','칠':'7','팔':'8','구':'9'};
+  const supMap2 = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  const subMap2 = {'0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉',
+    'a':'ₐ','e':'ₑ','h':'ₕ','i':'ᵢ','j':'ⱼ','k':'ₖ','l':'ₗ','m':'ₘ','n':'ₙ','o':'ₒ','p':'ₚ','r':'ᵣ','s':'ₛ','t':'ₜ','u':'ᵤ','v':'ᵥ','x':'ₓ'};
+  const letterWordMap = {'에이':'a','비':'b','씨':'c','디':'d','엑스':'x','와이':'y','제트':'z',
+    '엔':'n','아이':'i','제이':'j','케이':'k','엘':'l','엠':'m','오':'o','피':'p','알':'r','에스':'s','티':'t','유':'u','브이':'v'};
+
+  function tokenToChar(word){
+    if(numMap[word] !== undefined) return numMap[word];
+    if(letterWordMap[word]) return letterWordMap[word];
+    return word;
+  }
+
+  // 1. 괄호: 소괄호/중괄호/대괄호 → 여닫는 쌍으로 삽입
+  t = t.replace(/소괄호/g, '()');
+  t = t.replace(/중괄호/g, '{}');
+  t = t.replace(/대괄호/g, '[]');
+
+  // 2. 그리스문자 (대문자/소문자 구분이 있는 것 먼저 처리)
+  t = t.replace(/소문자\s*시그마/g, 'σ').replace(/시그마/g, 'Σ');
+  t = t.replace(/소문자\s*델타/g, 'δ').replace(/델타/g, 'Δ');
+  t = t.replace(/대문자\s*오메가/g, 'Ω').replace(/오메가/g, 'ω');
+  t = t.replace(/대문자\s*피/g, 'Φ').replace(/(?<![가-힣])피(?![가-힣])/g, 'φ');
+  const greekMap = {'알파':'α','베타':'β','감마':'γ','입실론':'ε','세타':'θ','람다':'λ','뮤':'μ','파이':'π','로':'ρ','카이':'χ'};
+  for(const [kor, sym] of Object.entries(greekMap)){
+    t = t.split(kor).join(sym);
+  }
+
+  // 3. 관계·포함·도형 표현: "A는 B보다 ~다" 구문을 A[기호]B 순서로 재배열
+  const comparatorMap = new Map([
+    ['크거나 같다', '≥'], ['크거나같다', '≥'],
+    ['작거나 같다', '≤'], ['작거나같다', '≤'],
+    ['같지 않다', '≠'], ['같지않다', '≠'],
+    ['거의 같다', '≈'], ['거의같다', '≈'], ['근사하다', '≈'],
+    ['이상이다', '≥'], ['이상', '≥'],
+    ['이하이다', '≤'], ['이하', '≤'],
+    ['초과이다', '>'], ['초과', '>'],
+    ['미만이다', '<'], ['미만', '<'],
+    ['크다', '>'], ['작다', '<'],
+    ['원소가 아니다', '∉'], ['원소가아니다', '∉'],
+    ['원소이다', '∈'], ['원소다', '∈'],
+    ['진부분집합이다', '⊂'],
+    ['부분집합이다', '⊂'],
+    ['포함한다', '⊂'], ['포함하다', '⊂'],
+    ['포함된다', '⊃'], ['포함되다', '⊃'],
+    ['수직', '⊥'], ['평행', '∥'],
+    ['합동', '≡'], ['닮음', '∽'],
+  ]);
+  const comparatorPattern = [...comparatorMap.keys()]
+    .sort((a,b) => b.length - a.length)
+    .map(k => k.replace(/ /g, '\\s*'))
+    .join('|');
+
+  // 3-1. 간단형: "에이 크다 비" → a>b (주어-비교어-값 순서, 조사/보다 불필요)
+  const simpleComparatorRe = new RegExp(`(\\S+?)\\s+(${comparatorPattern})\\s+(\\S+?)(?=\\s|$)`, 'g');
+  t = t.replace(simpleComparatorRe, (match, subject, word, value) => {
+    const key = word.replace(/\s/g, '');
+    const symbol = comparatorMap.get(word) || comparatorMap.get(key);
+    return symbol ? `${subject}${symbol}${value}` : match;
+  });
+
+  // 3-2. 문장형: "에이는 비보다 크다" → a>b (조사·보다·이다 포함 형태)
+  const comparatorRe = new RegExp(`(\\S+?)(?:는|은|가|이)\\s*(\\S+?)\\s*(?:보다\\s*)?(${comparatorPattern})(?:이다)?`, 'g');
+  t = t.replace(comparatorRe, (match, subject, value, word) => {
+    const key = word.replace(/\s/g, '');
+    const symbol = comparatorMap.get(word) || comparatorMap.get(key);
+    return symbol ? `${subject}${symbol}${value}` : match;
+  });
+
+  // 4. 위첨자/아래첨자: "에이 위첨자 엔" → aⁿ, "에이 아래첨자 엔" → aₙ
+  t = t.replace(/(\S+?)\s*위첨자\s*(\S+?)(?=\s|$)/g, (m, base, val) => {
+    const ch = tokenToChar(val);
+    return base + (supMap2[ch] || ch);
+  });
+  t = t.replace(/(\S+?)\s*아래첨자\s*(\S+?)(?=\s|$)/g, (m, base, val) => {
+    const ch = tokenToChar(val);
+    return base + (subMap2[ch] || ch);
+  });
+
+  // 5. 거듭제곱 표현
+  t = t.replace(/(\S)\s*세제곱/g, '$1³');
+  t = t.replace(/(\S)\s*네제곱/g, '$1⁴');
+  t = t.replace(/(\S)\s*다섯제곱/g, '$1⁵');
+  t = t.replace(/(\S)\s*여섯제곱/g, '$1⁶');
+  t = t.replace(/(\S)\s*일곱제곱/g, '$1⁷');
+  t = t.replace(/(\S)\s*여덟제곱/g, '$1⁸');
+  t = t.replace(/(\S)\s*아홉제곱/g, '$1⁹');
+  t = t.replace(/(\S)\s*제곱/g, '$1²');
+
+  // 6. 변수
+  const varMap = {'엑스':'x','와이':'y','제트':'z','에이':'a','비':'b','씨':'c'};
+  for(const [kor, sym] of Object.entries(varMap)){
+    t = t.split(kor).join(sym);
+  }
+
+  // 7. 기본 연산자
+  t = t.replace(/플러스마이너스|플마/g, '±');
+  t = t.replace(/더하기|플러스/g, '+');
+  t = t.replace(/빼기|마이너스/g, '-');
+  t = t.replace(/곱하기/g, '×');
+  t = t.replace(/나누기/g, '÷');
+  t = t.replace(/세제곱근/g, '∛');
+  t = t.replace(/네제곱근/g, '∜');
+  t = t.replace(/루트/g, '√');
+  t = t.replace(/무한대/g, '∞');
+  t = t.replace(/퍼센트/g, '%');
+  t = t.replace(/절댓값/g, '|');
+  t = t.replace(/내적/g, '·');
+  t = t.replace(/(?<=\s|^)대(?=\s|$)/g, ':');
+
+  // 8. 집합·논리 기호
+  t = t.replace(/합집합/g, '∪');
+  t = t.replace(/교집합/g, '∩');
+  t = t.replace(/공집합/g, '∅');
+  t = t.replace(/여집합/g, '∁');
+  t = t.replace(/모든/g, '∀');
+  t = t.replace(/존재한다/g, '∃');
+  t = t.replace(/부정/g, '¬');
+
+  // 9. 화살표
+  t = t.replace(/그러면/g, '⇒');
+  t = t.replace(/동치/g, '⇔');
+  t = t.replace(/왼쪽\s*화살표/g, '←');
+  t = t.replace(/양쪽\s*화살표/g, '↔');
+  t = t.replace(/화살표/g, '→');
+  t = t.replace(/증가/g, '↑');
+  t = t.replace(/감소/g, '↓');
+
+  // 10. 미적분
+  t = t.replace(/이중적분/g, '∬');
+  t = t.replace(/적분/g, '∫');
+  t = t.replace(/편미분/g, '∂');
+  t = t.replace(/나블라/g, '∇');
+  t = t.replace(/극한|리미트/g, 'lim');
+
+  // 11. 도형
+  t = t.replace(/삼각형/g, '△');
+  t = t.replace(/사각형/g, '□');
+  t = t.replace(/(?<![가-힣])각(?![가-힣])/g, '∠');
+
+  // 11-1. 삼각함수 이름 (숫자로 오인되지 않도록 숫자 변환보다 먼저 처리)
+  t = t.replace(/코사인/g, 'cos');
+  t = t.replace(/사인/g, 'sin');
+  t = t.replace(/탄젠트/g, 'tan');
+
+  // 12. 기타
+  t = t.replace(/따라서/g, '∴');
+  t = t.replace(/왜냐하면/g, '∵');
+
+  // 13. 같다/등호
+  t = t.replace(/같다|같음/g, '=');
+  t = t.replace(/(는|은)\s*/g, '=');
+
+  // 14. 숫자(한자어 수사, 십·백·천 단위 조합 포함) → 아라비아 숫자
+  t = t.replace(/[영공일이삼사오육칠팔구십백천만]+/g, (tok) => {
+    const digitMap = {'영':0,'공':0,'일':1,'이':2,'삼':3,'사':4,'오':5,'육':6,'칠':7,'팔':8,'구':9};
+    const unitMap = {'십':10,'백':100,'천':1000};
+    let result = 0, section = 0, num = 0;
+    for(const ch of tok){
+      if(digitMap[ch] !== undefined){
+        num = digitMap[ch];
+      }else if(unitMap[ch]){
+        section += (num || 1) * unitMap[ch];
+        num = 0;
+      }else if(ch === '만'){
+        result += (section + num || 1) * 10000;
+        section = 0; num = 0;
+      }
+    }
+    result += section + num;
+    return String(result);
+  });
+
+  // 14-1. 숫자 뒤에 붙는 '도' → 도(degree) 기호
+  t = t.replace(/(\d+)\s*도(?![가-힣])/g, '$1°');
+
+  // 15. 공백 정리
+  t = t.replace(/\s*([+\-×÷=≥≤≠≈±√∈∉⊂⊃∪∩∀∃∅∁¬→←↔⇒⇔↑↓∫∬∂∇∠△□⊥∥≡≅∽∴∵·:%|°])\s*/g, '$1');
+  t = t.replace(/\s+/g, ' ').trim();
+
+  return t;
+}
+
+
 if(SpeechRecognitionAPI){
   micBtn.classList.remove('unsupported');
+  document.getElementById('guideBtn').classList.remove('unsupported');
   const recognition = new SpeechRecognitionAPI();
   recognition.lang = 'ko-KR';
   recognition.interimResults = false;
@@ -521,7 +822,8 @@ if(SpeechRecognitionAPI){
   });
 
   recognition.addEventListener('result', (event) => {
-    const transcript = event.results[0][0].transcript;
+    const rawTranscript = event.results[0][0].transcript;
+    const transcript = convertSpokenMath(rawTranscript);
     const needsSpace = input.value.length > 0 && !/\s$/.test(input.value);
     insertAtCursor((needsSpace ? ' ' : '') + transcript);
   });
@@ -543,6 +845,100 @@ copyBtn.addEventListener('click', async () => {
     copyBtn.textContent = '복사하기';
     copyBtn.classList.remove('copied');
   },1800);
+});
+
+const voiceGuide = [
+  { category:'기본 연산', items:[
+    ['+', '더하기 / 플러스'],
+    ['-', '빼기 / 마이너스'],
+    ['×', '곱하기'],
+    ['÷', '나누기'],
+    ['±', '플러스마이너스 / 플마'],
+    ['=', '같다 / 문장 끝 "~는·~은"'],
+    ['≠', '같지 않다'],
+    ['≈', '거의 같다 / 근사하다'],
+    ['√', '루트'], ['∛', '세제곱근'], ['∜', '네제곱근'],
+    ['∞', '무한대'], ['%', '퍼센트'], ['|', '절댓값'], ['·', '내적'],
+    [':', '(숫자) 대 (숫자)'],
+  ]},
+  { category:'비교·부등호', items:[
+    ['>', '크다 / 초과'],
+    ['<', '작다 / 미만'],
+    ['≥', '크거나 같다 / 이상'],
+    ['≤', '작거나 같다 / 이하'],
+  ]},
+  { category:'거듭제곱·첨자', items:[
+    ['²', '제곱'],
+    ['³', '세제곱'],
+    ['⁴~⁹', '네제곱 ~ 아홉제곱'],
+    ['위첨자', '"에이 위첨자 엔" → aⁿ'],
+    ['아래첨자', '"에이 아래첨자 엔" → aₙ'],
+  ]},
+  { category:'그리스문자', items:[
+    ['α', '알파'], ['β', '베타'], ['γ', '감마'], ['ε', '입실론'],
+    ['θ', '세타'], ['λ', '람다'], ['μ', '뮤'], ['ρ', '로'], ['χ', '카이'],
+    ['π', '파이'],
+    ['Σ / σ', '시그마 / 소문자 시그마'],
+    ['Δ / δ', '델타 / 소문자 델타'],
+    ['ω / Ω', '오메가 / 대문자 오메가'],
+    ['φ / Φ', '피 / 대문자 피'],
+  ]},
+  { category:'집합·논리', items:[
+    ['∈ / ∉', '원소이다 / 원소가 아니다'],
+    ['⊂', '포함한다 / 부분집합이다 / 진부분집합이다'],
+    ['⊃', '포함된다 / 포함되다'],
+    ['∪ / ∩', '합집합 / 교집합'],
+    ['∅ / ∁', '공집합 / 여집합'],
+    ['∀ / ∃', '모든 / 존재한다'],
+    ['¬', '부정'],
+  ]},
+  { category:'도형·각도', items:[
+    ['⊥ / ∥', '수직 / 평행'],
+    ['≡ / ∽', '합동 / 닮음'],
+    ['△ / □', '삼각형 / 사각형'],
+    ['∠', '각'],
+    ['°', '(숫자) 도'],
+  ]},
+  { category:'화살표', items:[
+    ['→', '화살표'],
+    ['←', '왼쪽 화살표'],
+    ['↔', '양쪽 화살표'],
+    ['⇒', '그러면'],
+    ['⇔', '동치'],
+    ['↑ / ↓', '증가 / 감소'],
+  ]},
+  { category:'미적분·삼각함수', items:[
+    ['∫ / ∬', '적분 / 이중적분'],
+    ['∂ / ∇', '편미분 / 나블라'],
+    ['lim', '극한 / 리미트'],
+    ['sin / cos / tan', '사인 / 코사인 / 탄젠트'],
+  ]},
+  { category:'기타', items:[
+    ['∴ / ∵', '따라서 / 왜냐하면'],
+    ['( ) / { } / [ ]', '소괄호 / 중괄호 / 대괄호'],
+  ]},
+];
+
+const guideBody = document.getElementById('guideBody');
+voiceGuide.forEach(group => {
+  const label = document.createElement('div');
+  label.className = 'guide-section-label';
+  label.textContent = group.category;
+  guideBody.appendChild(label);
+  group.items.forEach(([symbol, trigger]) => {
+    const row = document.createElement('div');
+    row.className = 'guide-row';
+    row.innerHTML = `<span class="guide-symbol">${symbol}</span><span class="guide-trigger">${trigger}</span>`;
+    guideBody.appendChild(row);
+  });
+});
+
+const guideOverlay = document.getElementById('guideOverlay');
+const guideBtn = document.getElementById('guideBtn');
+guideBtn.addEventListener('click', () => guideOverlay.classList.add('open'));
+document.getElementById('closeGuide').addEventListener('click', () => guideOverlay.classList.remove('open'));
+guideOverlay.addEventListener('click', (e) => {
+  if(e.target === guideOverlay) guideOverlay.classList.remove('open');
 });
 </script>
 </body>
